@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuestAcademy • Gamified Student Learning & Progression Platform</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+
+    <!-- Canvas for Confetti & Particle Celebrations -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Top HUD Bar -->
+    <header class="hud-topbar">
+        <div class="hud-brand" onclick="navigateToView('quests')">
+            <div class="logo-icon">⚔️</div>
+            <div>
+                <h1>QUESTACADEMY</h1>
+            </div>
+            <span class="badge-tag">v2.0 HUD</span>
+        </div>
+
+        <!-- Player Level & XP Gauge -->
+        <div class="hud-player">
+            <div id="hud-avatar" class="avatar-wrapper">⚡</div>
+            <div class="player-info">
+                <div class="player-name-row">
+                    <span id="hud-user-name" class="player-name">Alex Hunter</span>
+                    <span id="hud-level-badge" class="player-level-badge">Lvl 4</span>
+                </div>
+                <div class="xp-bar-container">
+                    <div class="xp-bar-bg">
+                        <div id="hud-xp-fill" class="xp-bar-fill" style="width: 45%;"></div>
+                    </div>
+                    <div class="xp-bar-text">
+                        <span id="hud-xp-text">1,850 / 2,500 XP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Economy Currencies & Streaks -->
+        <div class="hud-stats">
+            <div class="stat-pill streak" title="Consecutive Active Daily Streak">
+                <span class="stat-icon">🔥</span>
+                <span id="hud-streak-count">5d</span>
+            </div>
+            <div class="stat-pill gold" title="Reward Currency (Earned through quality completions)">
+                <span class="stat-icon">🪙</span>
+                <span id="hud-gold-count">420</span>
+            </div>
+            <div class="stat-pill gems" title="Premium Milestone Gems">
+                <span class="stat-icon">💎</span>
+                <span id="hud-gems-count">12</span>
+            </div>
+        </div>
+
+        <!-- Controls (Sound, User Switcher, Demo Tour) -->
+        <div class="hud-actions">
+            <button id="btn-toggle-sound" class="btn-icon" title="Toggle Audio Sound FX" onclick="toggleAudio()">🔊</button>
+            <select id="user-switcher-select" class="user-select" onchange="handleUserSwitch(this.value)" title="Switch Active Demo User">
+                <!-- Populated dynamically -->
+            </select>
+            <button class="btn-demo-tour" onclick="openDemoTourModal()">
+                <span>🚀</span> 1-Click Guided Demo
+            </button>
+        </div>
+    </header>
+
+    <!-- App Container (Sidebar + Stage) -->
+    <div class="app-container">
+        
+        <!-- Left Sidebar Navigation -->
+        <aside class="app-sidebar">
+            <div class="sidebar-section-title">Operations</div>
+            <div class="nav-item active" data-view="quests" onclick="navigateToView('quests')">
+                <span class="nav-icon">📜</span>
+                <span>Daily Quests</span>
+                <span id="nav-badge-quests" class="nav-badge" style="display: none;">1</span>
+            </div>
+            <div class="nav-item" data-view="arena" onclick="navigateToView('arena')">
+                <span class="nav-icon">⚔️</span>
+                <span>Learning Arena</span>
+            </div>
+            <div class="nav-item" data-view="leaderboard" onclick="navigateToView('leaderboard')">
+                <span class="nav-icon">🏆</span>
+                <span>Leaderboards</span>
+            </div>
+
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-section-title">Character & Gear</div>
+            <div class="nav-item" data-view="profile" onclick="navigateToView('profile')">
+                <span class="nav-icon">👤</span>
+                <span>Player Matrix</span>
+            </div>
+            <div class="nav-item" data-view="shop" onclick="navigateToView('shop')">
+                <span class="nav-icon">💎</span>
+                <span>Reward Vault</span>
+            </div>
+
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-section-title">Governance</div>
+            <div class="nav-item" data-view="faculty" onclick="navigateToView('faculty')">
+                <span class="nav-icon">🛡️</span>
+                <span>Faculty Control</span>
+            </div>
+        </aside>
+
+        <!-- Main Stage Container -->
+        <main class="app-stage">
+
+            <!-- 1. Quests & Daily Operations View -->
+            <section id="view-quests" class="view-section active">
+                <div class="view-header">
+                    <div>
+                        <h2>Daily Missions & Collective Raids</h2>
+                        <p>Complete learning milestones, earn bonus multiplier XP, and defeat the batch raid boss.</p>
+                    </div>
+                </div>
+
+                <!-- Collective Batch Raid Boss Banner -->
+                <div id="raid-boss-container" class="raid-banner">
+                    <div style="font-size: 3rem;">🐉</div>
+                    <div class="raid-info" style="flex: 1;">
+                        <h3 id="raid-boss-title">Algorithm Titan (Raid Boss)</h3>
+                        <div id="raid-boss-cohort" style="font-size: 0.85rem; color: #fecdd3; margin-top: 2px;">Batch CS-2026-Alpha Cooperative Raid</div>
+                        <div class="raid-hp-bar">
+                            <div id="raid-boss-hp-fill" class="raid-hp-fill" style="width: 38%;"></div>
+                        </div>
+                        <div id="raid-boss-hp-text" style="font-size: 0.78rem; color: #fecdd3; font-family: var(--font-mono);">HP: 3,850 / 10,000 (38%)</div>
+                    </div>
+                    <div>
+                        <span class="reward-badge gold" style="font-size: 0.85rem; padding: 4px 10px;">Loot: 1,000 XP • 500 Gold</span>
+                    </div>
+                </div>
+
+                <!-- Quests Grid -->
+                <div id="quests-list-container" class="grid-3">
+                    <!-- Populated dynamically -->
+                </div>
+            </section>
+
+            <!-- 2. Learning Arena View (Quizzes, Code Arena, Bug Hunter) -->
+            <section id="view-arena" class="view-section">
+                <div class="view-header">
+                    <div>
+                        <h2>Learning Arena & Challenge Vault</h2>
+                        <p>Select an interactive knowledge duel, algorithmic quest, or debugging lab to test your skills.</p>
+                    </div>
+                </div>
+
+                <div class="category-tabs">
+                    <button class="tab-btn active" onclick="loadActivities()">All Challenges</button>
+                </div>
+
+                <div id="activities-grid" class="grid-3">
+                    <!-- Populated dynamically -->
+                </div>
+            </section>
+
+            <!-- 3. Leaderboards View -->
+            <section id="view-leaderboard" class="view-section">
+                <div class="view-header">
+                    <div>
+                        <h2>Rankings & Cohort Dynamics</h2>
+                        <p>Transparent real-time leaderboards rewarding learning consistency, mastery, and teamwork.</p>
+                    </div>
+                </div>
+
+                <div class="category-tabs">
+                    <button class="tab-btn lb-tab-btn active" data-type="individual" onclick="setLeaderboardType('individual')">Individual Rankings</button>
+                    <button class="tab-btn lb-tab-btn" data-type="batch" onclick="setLeaderboardType('batch')">Batch Cohort Battle 🛡️</button>
+                    <button class="tab-btn lb-tab-btn" data-type="streak" onclick="setLeaderboardType('streak')">Streak Masters 🔥</button>
+                </div>
+
+                <div id="leaderboard-container">
+                    <!-- Populated dynamically -->
+                </div>
+            </section>
+
+            <!-- 4. Student Profile View -->
+            <section id="view-profile" class="view-section">
+                <div class="view-header">
+                    <div>
+                        <h2>Student Progression Matrix</h2>
+                        <p>5-Axis skill radar, effort activity heatmap, collectible achievement badges, and equipped cosmetics.</p>
+                    </div>
+                </div>
+
+                <!-- Profile Top Summary -->
+                <div class="glass-card" style="margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 1.25rem;">
+                        <div id="profile-avatar-large" class="avatar-wrapper">⚡</div>
+                        <div>
+                            <h3 id="profile-name" style="font-size: 1.4rem; color: #fff;">Alex Hunter</h3>
+                            <div id="profile-role-batch" style="color: var(--text-muted); font-size: 0.88rem;">Batch CS-2026-Alpha • Level 4 Apprentice</div>
+                            <div id="profile-title-display" style="color: var(--accent-gold); font-size: 0.82rem; font-weight: bold; margin-top: 2px;">Algorithm Alchemist</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1.5rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.72rem; color: var(--text-muted);">Total XP</div>
+                            <div id="profile-stat-xp" style="font-size: 1.2rem; font-weight: 800; color: var(--primary);">1,850 XP</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.72rem; color: var(--text-muted);">Gold Vault</div>
+                            <div id="profile-stat-gold" style="font-size: 1.2rem; font-weight: 800; color: var(--accent-gold);">420 Gold</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.72rem; color: var(--text-muted);">Streak</div>
+                            <div id="profile-stat-streak" style="font-size: 1.2rem; font-weight: 800; color: #f97316;">🔥 5d</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.72rem; color: var(--text-muted);">Streak Freezes</div>
+                            <div id="profile-stat-freezes" style="font-size: 1.2rem; font-weight: 800; color: #06b6d4;">🛡️ 2</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-bottom: 2rem;">
+                    <!-- 5-Axis Skill Radar Canvas -->
+                    <div class="glass-card">
+                        <div style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">5-Axis Mastery Radar</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Calculated across challenge topics and consistency habits.</div>
+                        <div class="radar-canvas-container">
+                            <canvas id="radar-canvas" width="280" height="280"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Effort Activity Heatmap -->
+                    <div class="glass-card">
+                        <div style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">Activity & Consistency Heatmap</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Daily learning effort tracking (60-day visual cycle).</div>
+                        <div id="profile-heatmap-container" class="heatmap-grid">
+                            <!-- Populated dynamically -->
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--text-muted); margin-top: 1rem;">
+                            <span>Less Effort</span>
+                            <span style="width: 10px; height: 10px; background: rgba(255,255,255,0.05); border-radius: 2px;"></span>
+                            <span style="width: 10px; height: 10px; background: rgba(16, 185, 129, 0.3); border-radius: 2px;"></span>
+                            <span style="width: 10px; height: 10px; background: rgba(16, 185, 129, 0.6); border-radius: 2px;"></span>
+                            <span style="width: 10px; height: 10px; background: rgba(0, 242, 254, 0.9); border-radius: 2px;"></span>
+                            <span>High Mastery</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Badges Showcase -->
+                <div class="glass-card" style="margin-bottom: 2rem;">
+                    <div style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 1rem;">Achievement Badges & Mastery Milestones</div>
+                    <div id="profile-badges-grid" class="grid-4">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Inventory -->
+                <div class="glass-card">
+                    <div style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 1rem;">Equipped Gear & Cosmetics</div>
+                    <div id="profile-inventory-container">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. Reward Vault (Shop) -->
+            <section id="view-shop" class="view-section">
+                <div class="view-header">
+                    <div>
+                        <h2>Reward Vault & Cosmetics Shop</h2>
+                        <p>Spend your earned Gold & Gems on cosmetic HUD frames, prestigious titles, and emergency streak freezes.</p>
+                    </div>
+                </div>
+
+                <div id="shop-grid" class="grid-3">
+                    <!-- Populated dynamically -->
+                </div>
+            </section>
+
+            <!-- 6. Faculty Control Room & Security Audits -->
+            <section id="view-faculty" class="view-section">
+                <div class="view-header">
+                    <div>
+                        <h2>Faculty Command Center & Governance</h2>
+                        <p>Configure scoring rules dynamically, review anti-farming security logs, and monitor cohort engagement.</p>
+                    </div>
+                </div>
+
+                <!-- Engagement Analytics Impact Cards -->
+                <div class="glass-card" style="margin-bottom: 2rem;">
+                    <div style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 1rem;">Cohort Participation & Retention Analytics</div>
+                    <div class="grid-4" style="margin-bottom: 1.5rem;">
+                        <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Enrolled Scholars</div>
+                            <div id="analytics-students-count" style="font-size: 1.8rem; font-weight: 800; color: #fff;">25</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Activities Completed</div>
+                            <div id="analytics-activities-count" style="font-size: 1.8rem; font-weight: 800; color: var(--primary);">240</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Total XP Distributed</div>
+                            <div id="analytics-xp-count" style="font-size: 1.8rem; font-weight: 800; color: var(--accent-gold);">45,200 XP</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Abuse Attempts Blocked</div>
+                            <div id="analytics-abuse-count" style="font-size: 1.8rem; font-weight: 800; color: var(--accent-rose);">3 Blocked</div>
+                        </div>
+                    </div>
+                    <div id="analytics-impact-container"></div>
+                </div>
+
+                <div class="grid-2">
+                    <!-- Dynamic Rule Sliders -->
+                    <div class="glass-card">
+                        <div style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">Scoring & Anti-Abuse Configuration</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem;">Adjust points, multipliers, and farming thresholds without redeploying.</div>
+                        <div id="admin-rules-container">
+                            <!-- Sliders populated dynamically -->
+                        </div>
+                        <button class="btn-primary" style="width: 100%; margin-top: 1rem;" onclick="saveFacultyRules()">Save Configuration 💾</button>
+                    </div>
+
+                    <!-- Anti-Farming Security Audit Table -->
+                    <div class="glass-card">
+                        <div style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">Anti-Farming Security Audit</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Live monitoring of speed anomalies, bot spam, and repeat abuse.</div>
+                        <div style="max-height: 420px; overflow-y: auto;">
+                            <table class="audit-table">
+                                <thead>
+                                    <tr>
+                                        <th>Anomaly</th>
+                                        <th>Student</th>
+                                        <th>Activity</th>
+                                        <th>Details</th>
+                                        <th>Penalty</th>
+                                        <th style="text-align: right;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-audit-table-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Interactive Modals -->
+
+    <!-- 1. Quiz Runner Modal -->
+    <div id="quiz-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div>
+                    <h3 id="quiz-modal-title" style="color: #fff; font-size: 1.2rem;">Knowledge Duel</h3>
+                    <div id="quiz-modal-topic" style="color: var(--primary); font-size: 0.8rem; font-weight: bold;">Topic</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span id="quiz-timer-text" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--accent-gold);">00:00</span>
+                    <button class="btn-icon" onclick="closeQuizModal()">✖</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div id="quiz-progress-text" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Question 1 of 4</div>
+                <div id="quiz-question-container"></div>
+                <div style="margin-top: 1rem;">
+                    <label style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Optional Reflection (+30 XP Bonus for explaining your thinking):</label>
+                    <input type="text" id="quiz-reflection-input" placeholder="Explain your thought process briefly..." style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); padding: 0.6rem; border-radius: var(--radius-sm); color: #fff; font-family: var(--font-main);">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-quiz-prev" class="btn-secondary" style="display: none;" onclick="currentQuestionIndex--; renderCurrentQuestion();">← Previous</button>
+                <button id="btn-quiz-next" class="btn-primary">Next Question →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Code Quest Arena Modal -->
+    <div id="code-modal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 950px;">
+            <div class="modal-header">
+                <div>
+                    <h3 id="code-modal-title" style="color: #fff; font-size: 1.2rem;">Code Quest Arena</h3>
+                    <div id="code-modal-complexity" style="color: var(--primary); font-size: 0.8rem; font-family: var(--font-mono);">Complexity</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span id="code-timer-text" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--accent-gold);">00:00</span>
+                    <button class="btn-icon" onclick="closeCodeModal()">✖</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div id="code-modal-desc" style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5;"></div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <select id="code-lang-select" class="user-select" style="font-size: 0.78rem;">
+                        <option value="python">Python 3</option>
+                        <option value="javascript">JavaScript (ES6)</option>
+                    </select>
+                    <button class="btn-secondary" style="font-size: 0.78rem; padding: 4px 10px;" onclick="unlockNextHint()">💡 Unlock Hint</button>
+                </div>
+
+                <div id="code-hints-drawer" style="margin-bottom: 0.5rem;"></div>
+
+                <textarea id="code-editor" class="code-editor-area" spellcheck="false"></textarea>
+
+                <div class="terminal-box" id="code-terminal-output">
+                    Terminal ready. Click 'Run Tests' to evaluate your code.
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <input type="text" id="code-reflection-input" placeholder="Reflection: Explain your algorithmic approach for bonus XP..." style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); padding: 0.6rem; border-radius: var(--radius-sm); color: #fff; font-family: var(--font-main);">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="runCodeTestCases()">Run Tests ▶</button>
+                <button class="btn-primary" onclick="submitCodeQuest()">Submit Solution ⚔️</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Reward Celebration Modal -->
+    <div id="reward-modal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="reward-modal-title" style="color: #fff; font-size: 1.2rem;">Quest Completed!</h3>
+                <button class="btn-icon" onclick="closeRewardModal()">✖</button>
+            </div>
+            <div id="reward-modal-body" class="modal-body"></div>
+            <div class="modal-footer" style="justify-content: center;">
+                <button class="btn-primary" onclick="closeRewardModal()">Awesome! Continue Journey 🚀</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 1-Click Guided Demo Tour Modal -->
+    <div id="demo-tour-modal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 600px;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="color: #fff; font-size: 1.2rem;">🚀 Hackathon Interactive Guided Tour</h3>
+                    <div id="demo-step-counter" style="color: var(--primary); font-size: 0.8rem; font-weight: bold;">Step 1 of 6</div>
+                </div>
+                <button class="btn-icon" onclick="closeDemoTourModal()">✖</button>
+            </div>
+            <div class="modal-body">
+                <h4 id="demo-step-title" style="color: #fff; font-size: 1.1rem; margin-bottom: 0.5rem;"></h4>
+                <p id="demo-step-desc" style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDemoTourModal()">Close Tour</button>
+                <button class="btn-primary" onclick="nextDemoStep()">Execute Step →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/audio.js"></script>
+    <script src="/static/js/quizzes.js"></script>
+    <script src="/static/js/code_quest.js"></script>
+    <script src="/static/js/leaderboard.js"></script>
+    <script src="/static/js/profile.js"></script>
+    <script src="/static/js/admin.js"></script>
+    <script src="/static/js/demo_runner.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
